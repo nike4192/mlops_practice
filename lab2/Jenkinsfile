@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    environment {
+        PYTHON = 'python3'
+        VENV_DIR = 'venv'
+        LAB_DIR = 'lab2'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup') {
+            steps {
+                dir("${LAB_DIR}") {
+                    sh """
+                        ${PYTHON} -m venv ${VENV_DIR}
+                        . ${VENV_DIR}/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    """
+                }
+            }
+        }
+
+        stage('Data Collection') {
+            steps {
+                dir("${LAB_DIR}") {
+                    sh """
+                        . ${VENV_DIR}/bin/activate
+                        ${PYTHON} data_collection.py
+                    """
+                }
+            }
+        }
+
+        stage('Data Preprocessing') {
+            steps {
+                dir("${LAB_DIR}") {
+                    sh """
+                        . ${VENV_DIR}/bin/activate
+                        ${PYTHON} data_preprocessing.py
+                    """
+                }
+            }
+        }
+
+        stage('Model Training') {
+            steps {
+                dir("${LAB_DIR}") {
+                    sh """
+                        . ${VENV_DIR}/bin/activate
+                        ${PYTHON} model_training.py
+                    """
+                }
+            }
+        }
+
+        stage('Model Testing') {
+            steps {
+                dir("${LAB_DIR}") {
+                    sh """
+                        . ${VENV_DIR}/bin/activate
+                        ${PYTHON} model_testing.py
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            dir("${LAB_DIR}") {
+                archiveArtifacts artifacts: "logs/**", allowEmptyArchive: true
+                archiveArtifacts artifacts: "models/**", allowEmptyArchive: true
+            }
+        }
+        success {
+            echo 'Пайплайн завершён успешно'
+        }
+        failure {
+            echo 'Пайплайн завершился с ошибкой'
+        }
+    }
+}
