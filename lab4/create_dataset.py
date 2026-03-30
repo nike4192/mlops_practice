@@ -16,13 +16,14 @@ def load_titanic() -> pd.DataFrame:
     """Загружает Titanic из seaborn."""
     import seaborn as sns
     df = sns.load_dataset("titanic")
-    return df[["Pclass", "Sex", "Age"]].copy()
+    # seaborn titanic: колонки в lowercase
+    return df[["pclass", "sex", "age"]].copy()
 
 
 def create_v1(df: pd.DataFrame, output: str = "data/titanic_v1.csv"):
-    """Версия 1: базовый датасет (Pclass, Sex, Age) — с NaN."""
+    """Версия 1: базовый датасет (pclass, sex, age) — с NaN."""
     df.to_csv(output, index=False)
-    nan_count = df["Age"].isna().sum()
+    nan_count = df["age"].isna().sum()
     print(f"[v1] Сохранён: {output}")
     print(f"     Строк: {len(df)}, NaN в Age: {nan_count}")
     return df
@@ -31,18 +32,18 @@ def create_v1(df: pd.DataFrame, output: str = "data/titanic_v1.csv"):
 def create_v2(df: pd.DataFrame, output: str = "data/titanic_v2.csv"):
     """Версия 2: NaN в Age заполнены средним значением."""
     df = df.copy()
-    mean_age = df["Age"].mean()
-    df["Age"] = df["Age"].fillna(mean_age)
+    mean_age = df["age"].mean()
+    df["age"] = df["age"].fillna(mean_age)
     df.to_csv(output, index=False)
     print(f"[v2] Сохранён: {output}")
-    print(f"     NaN заполнены средним Age={mean_age:.2f}")
+    print(f"     NaN заполнены средним age={mean_age:.2f}")
     return df
 
 
 def create_v3(df: pd.DataFrame, output: str = "data/titanic_v3.csv"):
     """Версия 3: One-hot encoding для Sex."""
     df = df.copy()
-    df = pd.get_dummies(df, columns=["Sex"], prefix="Sex", dtype=int)
+    df = pd.get_dummies(df, columns=["sex"], prefix="sex", dtype=int)
     df.to_csv(output, index=False)
     print(f"[v3] Сохранён: {output}")
     print(f"     Колонки: {list(df.columns)}")
