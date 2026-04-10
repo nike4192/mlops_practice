@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: final
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate data
+        run: python src/data_collection.py
+
+      - name: Preprocess data
+        run: python src/data_preprocessing.py
+
+      - name: Train model
+        run: python src/train.py
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate model artifacts
+        working-directory: final
+        run: |
+          pip install -r requirements.txt
+          python src/data_collection.py
+          python src/data_preprocessing.py
+          python src/train.py
+
+      - name: Build Docker image
+        working-directory: final
+        run: docker build -t music-genre-classifier:latest .
+
+      - name: Test Docker image
+        working-directory: final
+        run: |
+          docker run -d --name test-api -p 5000:5000 music-genre-classifier:latest
+          sleep 5
+          curl -f http://localhost:5000/health
+          docker stop test-api
