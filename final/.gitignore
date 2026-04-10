@@ -6,7 +6,6 @@ venv/
 *.egg-info/
 dist/
 build/
-/data/*.csv
 /models/*.pkl
 .dvc/cache/
 .dvc/tmp/

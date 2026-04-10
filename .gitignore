@@ -3,10 +3,13 @@ __pycache__/
 venv/
 .env
 
-# Generated artifacts
-data/
-models/
-logs/
-train/
-test/
-*.pkl
+# Generated artifacts (lab1-5)
+/data/
+/models/
+/logs/
+/train/
+/test/
+/lab*/data/
+/lab*/models/
+/lab*/logs/
+/lab*/*.pkl
