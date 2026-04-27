@@ -1,0 +1,69 @@
+# Локальный GitLab + GitLab Runner для лабораторной №2.
+#
+# ВАЖНО: этот файл — инфраструктура, его НЕ нужно класть в проект GitLab.
+# Скопируйте его в отдельную директорию (например, ~/gitlab-local/) и запускайте оттуда.
+#
+# Подготовка ОДИН раз:
+#   sudo sh -c 'echo "127.0.0.1 gitlab.local" >> /etc/hosts'   # Linux/macOS
+#   (на Windows: добавить в C:\Windows\System32\drivers\etc\hosts)
+#
+# Запуск:
+#   docker compose -f gitlab-compose.yml up -d
+#
+# Первый старт ~5 мин (GitLab инициализируется). Готовность:
+#   docker compose -f gitlab-compose.yml logs -f gitlab
+#   ждите строку "gitlab Reconfigured!"
+#
+# Доступ:
+#   UI:        http://gitlab.local:8929
+#   Логин:     root
+#   Пароль:    задан в GITLAB_OMNIBUS_CONFIG ниже (по умолчанию: ChangeMe-2026!)
+#
+# Регистрация runner'а — см. lab2/README.md.
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    hostname: gitlab.local
+    restart: unless-stopped
+    ports:
+      - "8929:8929"
+      - "2289:22"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.local:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2289
+        gitlab_rails['initial_root_password'] = 'ChangeMe-2026!'
+        prometheus_monitoring['enable'] = false
+        gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8']
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    networks:
+      gitlab-net:
+        aliases:
+          - gitlab.local
+    shm_size: '256m'
+
+  runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab-runner
+    restart: unless-stopped
+    depends_on:
+      - gitlab
+    volumes:
+      - gitlab-runner-config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitlab-net
+
+networks:
+  gitlab-net:
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  gitlab-runner-config:
