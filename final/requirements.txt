@@ -5,4 +5,5 @@ numpy==2.2.4
 joblib==1.4.2
 pytest==8.3.5
 dvc==3.59.1
+dvc-ssh==4.2.2
 gunicorn==23.0.0
