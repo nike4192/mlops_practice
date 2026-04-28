@@ -180,8 +180,6 @@ git push -u origin main
 
 GitLab сразу запустит pipeline. Перейдите в проект → **Build** → **Pipelines**.
 
-![SCREENSHOT-08-pipeline-running](screenshots/08-pipeline-running.png)
-
 ## Шаг 6. Проверить результаты
 
 Дождитесь завершения всех стейджей (~2-3 минуты на первом прогоне из-за `pip install`). Все должны быть зелёными:
@@ -210,9 +208,10 @@ python ci_lint.py .gitlab-ci.yml
 
 Exit code: `0` — порядок, `1` — нарушения. В CI линтер запускается первым stage (`lint`) и валит сборку, если структура неправильная.
 
-**Демо-сломайте** — удалите строку `- test` из секции `stages:` в `.gitlab-ci.yml`, закоммитьте и запушьте — увидите красный stage `lint`:
+**Демо-сломайте** — уберите `test` из секции `stages:` (и сам job `test:`, чтобы yaml остался валидным для GitLab), закоммитьте и запушьте. Линтер упадёт первым стейджем, а ML-стейджи получат `skipped`:
 
 ![SCREENSHOT-12-lint-failed](screenshots/12-lint-failed-pipeline.png)
+![SCREENSHOT-12b-lint-job-log](screenshots/12b-lint-job-log.png)
 
 ---
 
